@@ -73,7 +73,7 @@ app.post("/api/call-openai", async (req, res) => {
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer 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`,
+            Authorization: `Bearer ` + process.env.OPENAPI_AUTH,
           },
         }
       )

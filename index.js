@@ -59,22 +59,23 @@ app.post("/api/call-openai", async (req, res) => {
     }
     const prompt = req.body.params.substring(0, 280);
 
-    post(
-      "https://api.openai.com/v1/completions",
-      {
-        prompt: prompt,
-        max_tokens: 200,
-        temperature: 0.1,
-        model: "text-davinci-003",
-        presence_penalty: 1,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: process.env.OPENAPI_AUTH,
+    axios
+      .post(
+        "https://api.openai.com/v1/completions",
+        {
+          prompt: prompt,
+          max_tokens: 200,
+          temperature: 0.1,
+          model: "text-davinci-003",
+          presence_penalty: 1,
         },
-      }
-    )
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: process.env.OPENAPI_AUTH,
+          },
+        }
+      )
       .then((response) => {
         console.log(response.data.choices);
         res.send(response.data.choices);

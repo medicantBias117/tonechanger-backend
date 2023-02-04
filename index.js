@@ -1,9 +1,11 @@
-const express = require("express");
-const { Client } = require("pg");
-const axios = require("axios");
-const bodyParser = require("body-parser");
-const cors = require("cors");
-const format = require("pg-format");
+import express from "express";
+import { Client } from "pg";
+import { post } from "axios";
+import { json } from "body-parser";
+import cors from "cors";
+import format from "pg-format";
+import { config } from "dotenv";
+config();
 
 // import { Configuration, OpenAIApi } from "openai";
 
@@ -15,14 +17,14 @@ const format = require("pg-format");
 // const openai = new OpenAIApi(configuration);
 
 const app = express();
-app.use(bodyParser.json());
+app.use(json());
 app.use(cors());
 // Connect to PostgreSQL database
 const client = new Client({
-  host: "ep-holy-snowflake-143233.eu-central-1.aws.neon.tech",
-  user: "medicantBias117",
-  password: "E1qyRfdlDz4V",
-  database: "neondb",
+  host: process.env.DBURL,
+  user: process.env.DBUSER,
+  password: process.env.DBPASSWORD,
+  database: process.env.DBDB,
   ssl: true,
 });
 client.connect();
@@ -66,23 +68,22 @@ app.post("/api/call-openai", async (req, res) => {
     }
     const prompt = req.body.params.substring(0, 280);
 
-    axios
-      .post(
-        "https://api.openai.com/v1/completions",
-        {
-          prompt: prompt,
-          max_tokens: 200,
-          temperature: 0.1,
-          model: "text-davinci-003",
-          presence_penalty: 1,
+    post(
+      "https://api.openai.com/v1/completions",
+      {
+        prompt: prompt,
+        max_tokens: 200,
+        temperature: 0.1,
+        model: "text-davinci-003",
+        presence_penalty: 1,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: process.env.OPENAPI_AUTH,
         },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer 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`,
-          },
-        }
-      )
+      }
+    )
       .then((response) => {
         console.log(response.data.choices);
         res.send(response.data.choices);

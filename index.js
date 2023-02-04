@@ -1,23 +1,16 @@
-import express from "express";
-import { Client } from "pg";
-import { post } from "axios";
-import { json } from "body-parser";
-import cors from "cors";
-import format from "pg-format";
-import { config } from "dotenv";
-config();
+const express = require("express");
+const { Client } = require("pg");
+const axios = require("axios");
+const bodyParser = require("body-parser");
+const cors = require("cors");
+const format = require("pg-format");
+const dotenv = require("dotenv");
 
-// import { Configuration, OpenAIApi } from "openai";
-
-// const configuration = new Configuration({
-//   organization: "org-c4B9L0fYCVsPcCA4fwaMYrxJ",
-//   apiKey: sk - akzorxtfFD3PNjsVVfKpT3BlbkFJmcRDQsRpIuwYfpz2ndCL,
-// });
-
-// const openai = new OpenAIApi(configuration);
+dotenv.config();
 
 const app = express();
-app.use(json());
+app.use(bodyParser.json());
+
 app.use(cors());
 // Connect to PostgreSQL database
 const client = new Client({
@@ -35,14 +28,13 @@ const limit = 50;
 // Define OpenAI endpoint
 const endpoint = "https://api.openai.com/v1/engines/engine_id/jobs";
 
-// Define base64 security function
-
 app.get("/", (req, res) => {
   res.send("Hello Goodbye!");
 });
 
 app.get("/api/checklimit", async (req, res) => {
   try {
+    console.log("Service live");
     const query =
       "SELECT count(*) FROM toneapilimits WHERE call_date = CURRENT_DATE";
     const result = await client.query(query);
@@ -59,7 +51,6 @@ app.get("/api/checklimit", async (req, res) => {
 app.post("/api/call-openai", async (req, res) => {
   try {
     // Check if daily limit has been reached
-
     const query =
       "SELECT count(*) FROM toneapilimits WHERE call_date = CURRENT_DATE";
     const result = await client.query(query);
@@ -95,7 +86,6 @@ app.post("/api/call-openai", async (req, res) => {
       })
       .finally((response) => {});
 
-    //( emailBody ,subjectLine ,isMakePurchase  ,isVisitWebApp ,isUpdateInfo  ,allowEmojis ,isClickbaity , otherObjective )
     const loggingQuery =
       "INSERT INTO toneapilog  VALUES ( " +
       "'" +
@@ -105,31 +95,9 @@ app.post("/api/call-openai", async (req, res) => {
       mysql_real_escape_string(req.body.intendedTone) +
       "'," +
       ", current_timestamp)";
-    // let reqArray = [ req.body.emailBody,req.body.subjectLine,  req.body.isMakePurchase, req.body.isVisitWebApp, req.body.isUpdateInfo, req.body.allowEmojis, req.body.isClickbaity, req.body.otherObjective, "current_timestamp"  ]
-
-    // let loggingQuery2 = format("INSERT INTO apilog  VALUES  %s  ",reqArray )
 
     await client.query(loggingQuery);
     console.log(loggingQuery);
-
-    // Make request to OpenAI
-    // request.post({
-    //   url: endpoint,
-    //   headers: headers,
-    //   body: req.body,
-    //   json: true
-    // }, (error, response, body) => {
-    //   if (error) {
-    //     return res.status(500).send({ error: 'OpenAI request failed' });
-    //   }
-
-    //   // Increment daily call count
-    //   const insertQuery = 'INSERT INTO apilimits (call_date, call_ts) VALUES (CURRENT_DATE, current_timestamp )';
-    //   client.query(insertQuery);
-
-    //   // Return response
-    //   return res.send(body);
-    // });
   } catch (error) {
     return res.status(500).send({ error: "An unexpected error occurred" });
   }

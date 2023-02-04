@@ -54,11 +54,12 @@ app.post("/api/call-openai", async (req, res) => {
     const query =
       "SELECT count(*) FROM toneapilimits WHERE call_date = CURRENT_DATE";
     const result = await client.query(query);
+
     if (result.rows[0].count >= limit) {
       return res.status(429).send({ choices: "Daily limit has been reached" });
     }
-    const prompt = req.body.params.substring(0, 280);
-    console.log("request received");
+    const prompt = req.body.params.substring(0, 400);
+
     axios
       .post(
         "https://api.openai.com/v1/completions",
@@ -72,33 +73,33 @@ app.post("/api/call-openai", async (req, res) => {
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: process.env.OPENAPI_AUTH,
+            Authorization: `Bearer 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`,
           },
         }
       )
       .then((response) => {
-        console.log(response.data.choices);
-        res.send(response.data.choices);
+        res.status(200).send(response.data.choices);
       })
-      .then((ress) => {
+      .then(() => {
         const insertQuery =
-          "INSERT INTO toneapilimits (call_date, call_ts) VALUES (CURRENT_DATE, current_timestamp )";
+          "INSERT INTO toneapilimits VALUES (CURRENT_DATE, current_timestamp )";
+
         client.query(insertQuery);
-      })
-      .finally((response) => {});
+      });
 
     const loggingQuery =
       "INSERT INTO toneapilog  VALUES ( " +
       "'" +
-      mysql_real_escape_string(prompt) +
+      mysql_real_escape_string(
+        prompt.substring(prompt.indexOf("\n"), prompt.length)
+      ) +
       "', " +
       "'" +
       mysql_real_escape_string(req.body.intendedTone) +
       "'," +
-      ", current_timestamp)";
+      " current_timestamp)";
 
     await client.query(loggingQuery);
-    console.log(loggingQuery);
   } catch (error) {
     return res.status(500).send({ error: error });
   }

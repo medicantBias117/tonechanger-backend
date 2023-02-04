@@ -58,7 +58,7 @@ app.post("/api/call-openai", async (req, res) => {
       return res.status(429).send({ choices: "Daily limit has been reached" });
     }
     const prompt = req.body.params.substring(0, 280);
-
+    console.log("request received");
     axios
       .post(
         "https://api.openai.com/v1/completions",

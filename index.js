@@ -44,7 +44,7 @@ app.get("/api/checklimit", async (req, res) => {
       return res.status(200).send("limitnotreached");
     }
   } catch (error) {
-    return res.status(500).send({ error: "An unexpected error occurred" });
+    return res.status(500).send({ error: error });
   }
 });
 
@@ -100,7 +100,7 @@ app.post("/api/call-openai", async (req, res) => {
     await client.query(loggingQuery);
     console.log(loggingQuery);
   } catch (error) {
-    return res.status(500).send({ error: "An unexpected error occurred" });
+    return res.status(500).send({ error: error });
   }
 });
 
